@@ -99,9 +99,18 @@ public class Graph {
         return vertices;
     }
 
-    public String areNodesConnected(){
+    public List<String> areNodesConnected(){
+        List<String> notConnected = new ArrayList<>();
 
-        return null;
+        for(int i = 0;i < vertices; i++){
+            LinkedList<Edge> list = adjacencylist[i];
+            //for(int j = 0;j < vertices;j++){
+                if(list.get(i) != null) continue;
+                else System.out.println("V"+list.get(i).source);
+            //}
+        }
+
+        return notConnected;
     }
 
     public String printGraph(){

@@ -32,6 +32,7 @@ public class Gui extends JFrame {
         panel.add(addEdgeBut( "Add an Edge"));
         panel.add(enterNodesBut("Find all paths between 2 nodes"));
         panel.add(enterNodesBut("Find shortest path between 2 nodes"));
+        panel.add(areNodesConnectedBut("Are all nodes connected to the graph?"));
         panel.add(makeGraphBut("Is current graph directed?"));
 
 
@@ -41,6 +42,22 @@ public class Gui extends JFrame {
         //pack();
         setVisible(true);
     }
+
+    public JButton areNodesConnectedBut(String title){
+        JButton b = new JButton(title);
+
+        b.addActionListener(new ActionListener() {
+
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                graph.areNodesConnected();
+            }
+        });
+
+        return b;
+    }
+
 
     public JButton enterNodesBut(String title){
         JButton b = new JButton(title);
