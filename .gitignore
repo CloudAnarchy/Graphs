@@ -18,5 +18,9 @@
 *.tar.gz
 *.rar
 
+# For Intellij
+.idea
+*.iml
+
 # Virtual machine crash logs
 hs_err_pid*
