@@ -5,12 +5,9 @@ import java.util.*;
 public class Graph {
     private int vertices; // Akmes
     private final LinkedList<Edge> [] adjacencylist; // Adjacency List
-    private final int adjacencyMatrix[][];  // Adjacency Matrix
+    private Set<Node> nodes = new HashSet<>();
+    private final int[][] adjacencyMatrix;  // Adjacency Matrix
     private List<String> allPaths;
-    //    private PriorityQueue<Node> pq;
-//    private List<Node> nodes;
-    private Set<Integer> settled;
-    private int[] dist;
     private int pathsCounter;
 
 
@@ -19,29 +16,37 @@ public class Graph {
         this.vertices = vertices;
         adjacencylist = new LinkedList[vertices];
         adjacencyMatrix = new int[vertices][vertices];
-//        this.nodes = new ArrayList<>();
-
-        // We create a PriorityQueue with the specified initial capacity
-        // that orders its elements according to the specified comparator
-//        pq = new PriorityQueue<>(vertices, new Node());
-        dist = new int[vertices];
-        settled = new HashSet<Integer>();
-
 
         Random r = new Random();
         //initialize adjacency lists for all the vertices
         // and adding colors to them
-        for (int i = 0;i < vertices; i++){
-//            this.nodes.add(new Node(i));
+        for (int i = 0;i < vertices; i++) {
+            nodes.add(new Node(i));
             adjacencylist[i] = new LinkedList<>();
         }
-
     }
 
     public void addEgde(int source, int destination, int weight) {
         Edge edge = new Edge(source, destination, weight);
+        settingNewEdge(source, destination, weight);
         adjacencyMatrix[source][destination] = weight;
         adjacencylist[source].addFirst(edge); //for directed graph
+    }
+
+    // This one helps with getting the nodes of the set.
+    public Node gettingNode(int nodeID){
+        Node node = new Node(-1);
+        for(Iterator<Node> it = nodes.iterator(); it.hasNext(); node = it.next())
+            if(node.getSource() == nodeID) return node;
+        if(node.getSource() == -1) System.out.println("BUGGGGGGGG\n\n");
+        return node;
+    }
+
+    // This one is like adding an edge more of less.
+    public void settingNewEdge(int source, int destination, int weight){
+        Node sourceNode = gettingNode(source);
+        Node destinationNode = gettingNode(destination);
+        sourceNode.addDestination(destinationNode, weight);
     }
 
     public int isEdge(int source, int destination) {
@@ -92,35 +97,69 @@ public class Graph {
 
         return null;
     }*/
-    public String lowestCostPath(int source){
+    public Graph lowestCostPath(Graph graph, Node source){
 
         // Implementing Dijkstra's algorithm.
         // Setting all distances to "infinity".
-        for(int i = 0;i < vertices; i++)
-            dist[i] = Integer.MAX_VALUE;
+        // (Already did that when creating the nodes)
 
         // Setting staring node distance to 0
-        // and then we add it to the que.
-//        nodes.get(source).setCost(0);
-//        pq.add(nodes.get(source));
-        dist[source] = 0;
+        source.setWeight(0);
+
+        // We are using Sets because compared to lists they
+        // only allow unique entries.
+        Set<Node> settledNodes = new HashSet<>();
+        Set<Node> unsettledNodes = new HashSet<>();
+
+        unsettledNodes.add(source);
         /////////////////////////////
-        // While the settled nodes set is not equal to our
-        // vertices. (we could also do unsettled nodes and
-        // remove one every time we settle one. e.g:
-        // while (unsettled.size() != 0)
-        while(settled.size() != vertices){
+        // While the unsettled nodes set is not 0
+        while(unsettledNodes.size() != 0){
+            Node currentNode = getClosestNode(unsettledNodes);
+            // getting every path from the current node to a near by node.
+            for(Map.Entry<Node, Integer> adjacencyPair : currentNode.getAdjacentNodes().entrySet()){
+                // We get the node and the weight of the edge
+                Node adjNode = adjacencyPair.getKey();
+                int edgeWeight = adjacencyPair.getValue();
 
-            // We remove the minimum distance node
-//            int rem = pq.remove().source;
-
-            // Adding the finalized distance of a node
-//            settled.add(rem);
-
-//            lookGeitones(rem);
+                // if the node IS NOT in the settledNodes
+                // then we calculate the next minimum distance
+                if(!settledNodes.contains(adjNode)){
+                    calculateMinDist(adjNode, edgeWeight, currentNode);
+                    unsettledNodes.add(adjNode);
+                }
+            }
+            settledNodes.add(currentNode);
         }
-        return null;
+
+        return graph;
     }
+
+    // It will find the lowestDistance - weight from all
+    // the unsettledNodes we have atm.
+    private Node getClosestNode(Set<Node> unsettledNodes){
+        Node lowestWeightNode = null;
+        int lowestWeight = Integer.MAX_VALUE;
+        for(Node node : unsettledNodes){
+            int nodeWeight = node.getWeight();
+            if(nodeWeight < lowestWeight){
+                lowestWeight = nodeWeight;
+                lowestWeightNode = node;
+            }
+        }
+        return lowestWeightNode;
+    }
+
+    public void calculateMinDist(Node evaluationNode, int edgeWeight, Node sourceNode){
+        int tmp = sourceNode.getWeight() + edgeWeight;
+        if( tmp < evaluationNode.getWeight()){
+            evaluationNode.setWeight(tmp);
+            LinkedList<Node> shortestPath = new LinkedList<>(sourceNode.getShortestPath());
+            shortestPath.add(sourceNode);
+            evaluationNode.setShortestPath(shortestPath);
+        }
+    }
+
 
     /*
     public void lookGeitones(int removed){
@@ -139,15 +178,11 @@ public class Graph {
 
      */
 
-
-
-
     public String findAllPaths(int source , int destination){
 
         // initializing some basic variables for to find
         // all the paths between 2 nodes.
         this.allPaths = new ArrayList<>();
-//        this.paths = new AllPaths();
         this.pathsCounter = 0;
         boolean[] visited = new boolean[vertices];
         visited[source] = true;
@@ -161,7 +196,6 @@ public class Graph {
             tmp += "\n"+path;
         return tmp;
     }
-
     public void getPaths(int source, int destination, String path, boolean[] visited){
         String newPath = path +  "->" + source;
         visited[source] = true;
@@ -194,7 +228,6 @@ public class Graph {
         //remove from path
         visited[source] = false;
     }
-
     public String shortestPath(int source, int destination){
 
         // First we find all the paths.
@@ -210,11 +243,9 @@ public class Graph {
         }else shortestPath = null;
         return shortestPath;
     }
-
     public int getVertices(){
         return vertices;
     }
-
     public String isGraphIsomorphic(){
         String text = "<html><h1 style = color:#057aa0;>Is Current Graph isomorphic?</h1><p>";
 
@@ -311,60 +342,38 @@ public class Graph {
         return myText;
     }
 
-
-    /*
     // Inner class Nodes
-    static class Node implements Comparator<Node> {
-        private int source;
-        private int cost;
+    static class Node {
+        private int node;
         private int weight;
+        Map<Node, Integer> adjacentNodes;
+        private List<Node> shortestPath;
         private Random r = new Random();
         private boolean isRed;
 
-        public Node(){}
-        public Node(int source){
-            this.source = node;
+        public Node(int node){
+            this.node = node;
             this.isRed = r.nextBoolean();
+            this.adjacentNodes = new HashMap<>(); // HashMap to keep info for every neighbors
+            this.weight = Integer.MAX_VALUE;  // Initializing the weight to infinity
+            this.shortestPath = new LinkedList<>(); // This will help to get the shortest path from the starting node
         }
 
-        public Ne(int node, int cost){
-            this.source = node;
-            this.cost  = cost;
-            this.isRed = r.nextBoolean();
+        public void addDestination(Node destination, int weight){
+            adjacentNodes.put(destination, weight);
         }
 
-        public Edge(int node, int cost, int weight){
-            this.source = node;
-            this.cost  = cost;
-            this.weight = weight;
-            this.isRed = r.nextBoolean();
-        }
-
-        @Override
-        public int compare(Node node1, Node node2){
-            if(node1.cost < node2.cost) return -1;
-            if(node1.cost > node2.cost) return 1;
-            return 0;
-        }
-
-        public int getNode() {
-            return source;
-        }
-        public void setNode(int node) {
-            this.source = node;
-        }
-        public int getCost() {
-            return cost;
-        }
-        public void setCost(int cost) {
-            this.cost = cost;
-        }
-        public boolean isRed() {
-            return isRed;
-        }
+        // Getters Setters
+        public Map<Node, Integer> getAdjacentNodes(){ return this.adjacentNodes; }
+        public List<Node> getShortestPath(){ return  shortestPath;}
+        public void setShortestPath(List<Node> shortestPath){ this.shortestPath = shortestPath; }
+        private void setWeight(int amount){ this.weight = amount;}
+        public int getSource() { return node; }
+        public void setSource(int source) { this.node = source; }
+        public int getWeight() { return weight; }
+        public boolean isRed() { return isRed; }
     }
 
-     */
 
 
 

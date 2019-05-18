@@ -57,8 +57,6 @@ public class Gui extends JFrame {
         return b;
     }
 
-
-
     public JButton isGraphIsomorphicBut(String title){
         JButton b = new JButton(title);
 
