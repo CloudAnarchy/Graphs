@@ -5,7 +5,7 @@ import java.util.*;
 public class Graph {
     private int vertices; // Akmes
     private final LinkedList<Edge> [] adjacencylist; // Adjacency List
-    private Set<Node> nodes = new HashSet<>();
+    private Set<Node> nodes; // A set of nodes because every node is unique
     private final int[][] adjacencyMatrix;  // Adjacency Matrix
     private List<String> allPaths;
     private int pathsCounter;
@@ -16,9 +16,10 @@ public class Graph {
         this.vertices = vertices;
         adjacencylist = new LinkedList[vertices];
         adjacencyMatrix = new int[vertices][vertices];
+        nodes = new HashSet<>();
 
         Random r = new Random();
-        //initialize adjacency lists for all the vertices
+        // Initialize adjacency lists for all the vertices
         // and adding colors to them
         for (int i = 0;i < vertices; i++) {
             nodes.add(new Node(i));
@@ -38,12 +39,11 @@ public class Graph {
         Node node = new Node(-1);
         for(Iterator<Node> it = nodes.iterator(); it.hasNext(); node = it.next())
             if(node.getSource() == nodeID) return node;
-        if(node.getSource() == -1) System.out.println("BUGGGGGGGG\n\n");
         return node;
     }
 
     // This one is like adding an edge more of less.
-    public void settingNewEdge(int source, int destination, int weight){
+    private void settingNewEdge(int source, int destination, int weight){
         Node sourceNode = gettingNode(source);
         Node destinationNode = gettingNode(destination);
         sourceNode.addDestination(destinationNode, weight);
@@ -97,12 +97,17 @@ public class Graph {
 
         return null;
     }*/
-    public Graph lowestCostPath(Graph graph, Node source){
+    public String/*List<Node>*/ lowestCostPath(int sourceID){
+
+        // Resetting the Lists.
+        for(Node node : nodes){
+            node.setShortestPath(new LinkedList<>());
+        }
 
         // Implementing Dijkstra's algorithm.
         // Setting all distances to "infinity".
         // (Already did that when creating the nodes)
-
+        Node source = gettingNode(sourceID);
         // Setting staring node distance to 0
         source.setWeight(0);
 
@@ -116,6 +121,7 @@ public class Graph {
         // While the unsettled nodes set is not 0
         while(unsettledNodes.size() != 0){
             Node currentNode = getClosestNode(unsettledNodes);
+            unsettledNodes.remove(currentNode);
             // getting every path from the current node to a near by node.
             for(Map.Entry<Node, Integer> adjacencyPair : currentNode.getAdjacentNodes().entrySet()){
                 // We get the node and the weight of the edge
@@ -131,8 +137,46 @@ public class Graph {
             }
             settledNodes.add(currentNode);
         }
+        //String tmp =;
+        return  shortestPathsToString(sourceID);
+    }
 
-        return graph;
+    public String shortestPathsToString(int source){
+        String[] tmp = new String[2];
+        tmp[0] = "<html><h1 style = color:#00e68a;>For source: "+source+"</h1><p>";
+        tmp[1] = "\n\nPaths with NO RED nodes:\n\n";
+
+        boolean isThereRedNode = false;
+
+        // For every node we have in our graph
+        for(Iterator<Node> it = nodes.iterator(); it.hasNext();){
+            Node node = it.next();
+            String newPath = "Destination Node: "+node.getSource()+"\n";
+
+            System.out.println("Destination Node: "+node.getSource());
+
+            // We check every nodes best path to our source Node
+            // NOTE!!! every time we run these functions and we give
+            // a different source node it the attribute shortestPath changes.
+            Iterator<Node> newIt = node.shortestPath.iterator();
+            while(newIt.hasNext()){
+                Node n = newIt.next();
+                if(n.isRed()) isThereRedNode = true;
+
+                newPath += n.getSource()+"->";
+                System.out.print(n.getSource()+"->");
+            }
+            newPath += ""+node.getSource()+"\n";
+            if(isThereRedNode) tmp[0] += newPath;
+            else tmp[1] += newPath;
+
+            // Resetting for the next node to check
+            // if there is a red node in the path till source.
+            isThereRedNode = false;
+            System.out.println(node.getSource());
+
+        }
+        return tmp[0] + tmp[1];
     }
 
     // It will find the lowestDistance - weight from all
@@ -150,7 +194,7 @@ public class Graph {
         return lowestWeightNode;
     }
 
-    public void calculateMinDist(Node evaluationNode, int edgeWeight, Node sourceNode){
+    private void calculateMinDist(Node evaluationNode, int edgeWeight, Node sourceNode){
         int tmp = sourceNode.getWeight() + edgeWeight;
         if( tmp < evaluationNode.getWeight()){
             evaluationNode.setWeight(tmp);
@@ -343,7 +387,7 @@ public class Graph {
     }
 
     // Inner class Nodes
-    static class Node {
+    static class Node implements Cloneable{
         private int node;
         private int weight;
         Map<Node, Integer> adjacentNodes;
@@ -373,9 +417,6 @@ public class Graph {
         public int getWeight() { return weight; }
         public boolean isRed() { return isRed; }
     }
-
-
-
 
     // Inner class Edge
     static class Edge {
