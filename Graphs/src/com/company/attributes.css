@@ -1,0 +1,32 @@
+graph {
+    fill-color: #e67300;
+    padding: 50px;
+}
+
+edge {
+    fill-color: #e6e6e6;
+}
+
+node {
+    text-alignment: under;
+    text-color: #1a0600;
+    text-style: bold;
+    text-background-mode: rounded-box;
+    text-background-color: #222C;
+    text-padding: 5px, 4px;
+    text-offset: 0px, 5px;
+    text-size: 13;
+}
+/*
+node {
+    text-alignment: under;
+    text-color: white;
+    text-background-mode: plain;
+    text-background-color: white;
+}
+
+ */
+
+node:clicked {
+    fill-color: purple;
+}
